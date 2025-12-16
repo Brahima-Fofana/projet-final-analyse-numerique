@@ -139,18 +139,18 @@ avec $ h = \frac{b - a}{n} $.
 
 1. **Interpolation** : On évalue \(f\) en \(m\) points équidistants sur \([a, b]\) et on construit une spline quadratique \(S(x)\) (degré 2 par morceaux, continue en valeur et dérivée première \(C^1\)).
 
-   Sur chaque intervalle $[x_i, x_{i+1}]$ :
+Sur chaque intervalle $[x_i, x_{i+1}]$ :
 
-   $$
-   S(x) = a_i (x - x_i)^2 + b_i (x - x_i) + c_i
-   $$
+$$
+S(x) = a_i (x - x_i)^2 + b_i (x - x_i) + c_i
+$$
 
 2. **Intégration analytique exacte** de la spline :
 
-   $$
-   \int_a^b f(x) \, dx \approx \int_a^b S(x) \, dx = \sum_{i=0}^{m-2} \left( \frac{a_i h_i^3}{3} + \frac{b_i h_i^2}{2} + c_i h_i \right)
-   $$
+$$
+\int_a^b f(x) \, dx \approx \int_a^b S(x) \, dx = \sum_{i=0}^{m-2} \left( \frac{a_i h_i^3}{3} + \frac{b_i h_i^2}{2} + c_i h_i \right)
+$$
 
-   où $h_i = x_{i+1} - x_i$.
+où $h_i = x_{i+1} - x_i$.
 
-   Cette méthode est très précise car l’intégration de la spline est exacte (pas d’erreur de discrétisation supplémentaire).
+Cette méthode est très précise car l’intégration de la spline est exacte (pas d’erreur de discrétisation supplémentaire).
