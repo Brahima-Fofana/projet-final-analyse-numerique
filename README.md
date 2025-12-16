@@ -1,7 +1,7 @@
 # Méthodes Numériques pour la Résolution d’Équations Différentielles Ordinaires et d'Intégration Numérique
 
 
-## Méthodes Numériques pour la Résolution d’Équations Différentielles Ordinaires
+## Méthodes Numériques pour la Résolution d’Équations Différentielles
 
 Ce projet implémente trois méthodes numériques à pas séparés pour résoudre d’Équations Différentielles Ordinaires:
 
