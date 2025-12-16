@@ -25,7 +25,7 @@ z(x) = e^{\sin(\pi x)}
 $$
 
 
-## Méthodes Implémentées
+## Méthodes Implémentées et Formules Mathématiques
 
 ### 1. Méthode d’Euler
 
