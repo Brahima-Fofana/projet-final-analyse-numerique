@@ -103,17 +103,17 @@ $$
 \int_0^{+\infty} e^{-x} f(x) \, dx \approx \sum_{i=1}^n w_i f(x_i)
 $$
 
-où \(x_i\) sont les racines du polynôme de Laguerre \(L_n(x)\) et \(w_i\) les poids associés.
+où $x_i$ sont les racines du polynôme de Laguerre $L_n(x)$ et $w_i$ les poids associés.
 
 ### 2. Quadrature de Gauss-Legendre
 
-Pour les intégrales sur un intervalle fini \([a, b]\) :
+Pour les intégrales sur un intervalle fini $[a, b]$ :
 
 $$
 \int_a^b f(x) \, dx \approx \frac{b-a}{2} \sum_{i=1}^n w_i \, f\left( \frac{b-a}{2} x_i + \frac{a+b}{2} \right)
 $$
 
-où \(x_i\) et \(w_i\) sont les nœuds et poids de Gauss-Legendre sur \([-1, 1]\).
+où $x_i$ et $w_i$ sont les nœuds et poids de Gauss-Legendre sur $[-1, 1]$.
 
 ### 3. Quadrature de Gauss-Chebyshev
 
@@ -133,13 +133,13 @@ $$
 \int_a^b f(x) \, dx \approx \frac{h}{3} \left[ f(a) + f(b) + 4 \sum_{k=1}^{n/2} f(a + (2k-1)h) + 2 \sum_{k=1}^{n/2-1} f(a + 2kh) \right]
 $$
 
-avec \( h = \frac{b - a}{n} \).
+avec $ h = \frac{b - a}{n} $.
 
 ### 5. Intégration par Spline Quadratique
 
 1. **Interpolation** : On évalue \(f\) en \(m\) points équidistants sur \([a, b]\) et on construit une spline quadratique \(S(x)\) (degré 2 par morceaux, continue en valeur et dérivée première \(C^1\)).
 
-   Sur chaque intervalle \([x_i, x_{i+1}]\) :
+   Sur chaque intervalle $[x_i, x_{i+1}]$ :
 
    $$
    S(x) = a_i (x - x_i)^2 + b_i (x - x_i) + c_i
@@ -151,6 +151,6 @@ avec \( h = \frac{b - a}{n} \).
    \int_a^b f(x) \, dx \approx \int_a^b S(x) \, dx = \sum_{i=0}^{m-2} \left( \frac{a_i h_i^3}{3} + \frac{b_i h_i^2}{2} + c_i h_i \right)
    $$
 
-   où \( h_i = x_{i+1} - x_i \).
+   où $h_i = x_{i+1} - x_i$.
 
    Cette méthode est très précise car l’intégration de la spline est exacte (pas d’erreur de discrétisation supplémentaire).
