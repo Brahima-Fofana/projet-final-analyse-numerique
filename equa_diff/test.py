@@ -16,8 +16,8 @@ def representation(f, x0, y0, h_list, exact=None):
         err_l2_e = np.sqrt(np.mean((y_euler - exact(x_euler)) ** 2))
         print(f"Euler - h = {h}")
         print(f"  Temps : {duration_euler:.6f} s")
-        print(f"  Erreur max : {err_max_e:.6e}")
-        print(f"  Erreur L2  : {err_l2_e:.6e}")
+        print(f"  Erreur maximale : {err_max_e:.6e}")
+        print(f"  Erreur moyenne  : {err_l2_e:.6e}")
         print("-" * 50)
 
         # --- Heun ---
@@ -28,8 +28,8 @@ def representation(f, x0, y0, h_list, exact=None):
         err_l2_h = np.sqrt(np.mean((y_heun - exact(x_heun)) ** 2))
         print(f"Heun - h = {h}")
         print(f"  Temps : {duration_heun:.6f} s")
-        print(f"  Erreur max : {err_max_h:.6e}")
-        print(f"  Erreur L2  : {err_l2_h:.6e}")
+        print(f"  Erreur maximale : {err_max_h:.6e}")
+        print(f"  Erreur moyenne  : {err_l2_h:.6e}")
         print("-" * 50)
 
         # --- Runge-Kutta ---
@@ -40,8 +40,8 @@ def representation(f, x0, y0, h_list, exact=None):
         err_l2_rk = np.sqrt(np.mean((y_rk - exact(x_rk)) ** 2))
         print(f"Runge-Kutta - h = {h}")
         print(f"  Temps : {duration_rk:.6f} s")
-        print(f"  Erreur max : {err_max_rk:.6e}")
-        print(f"  Erreur L2  : {err_l2_rk:.6e}")
+        print(f"  Erreur maximale : {err_max_rk:.6e}")
+        print(f"  Erreur moyenne  : {err_l2_rk:.6e}")
         print("-" * 50)
 
         # Graphes (un par méthode, ou tous sur le même si tu préfères)

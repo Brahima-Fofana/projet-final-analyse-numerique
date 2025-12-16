@@ -1,4 +1,4 @@
-# Méthodes Numériques pour la Résolution d’Équations Différentielles Ordinaires et d'Intégration Numérique
+# Méthodes Numériques pour la Résolution d’Équations Différentielles et d'Intégration Numérique
 
 
 ## Méthodes Numériques pour la Résolution d’Équations Différentielles

@@ -32,7 +32,7 @@ def representation(f, x0, y0, h_list, exact=None):
         print(f"Méthode de Heun - h = {h}")
         print(f"  Temps d'exécution : {duration:.6f} secondes")
         print(f"  Erreur maximale    : {erreur_max:.6e}")
-        print(f"  Erreur L2          : {erreur_l2:.6e}")
+        print(f"  Erreur moyenne          : {erreur_l2:.6e}")
         print("-" * 50)
 
         plt.figure()
