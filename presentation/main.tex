@@ -1,0 +1,991 @@
+% ============================================================================
+% PRÉSENTATION : ANALYSE NUMÉRIQUE
+% Méthodes de résolution d'équations différentielles et intégration numérique
+% ============================================================================
+
+\documentclass[10pt,xcolor=dvipsnames]{beamer}
+
+% Packages essentiels
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+
+% Thème de la présentation
+\usetheme{Madrid}
+\usecolortheme{default}
+\setbeamercolor{structure}{fg=NavyBlue}
+\setbeamercolor{title}{fg=NavyBlue}
+\setbeamercolor{frametitle}{fg=NavyBlue}
+
+% Configuration des mathématiques
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\abs}[1]{\left|#1\right|}
+
+% Informations de la présentation
+\title[Analyse Numérique]{Méthodes Numériques pour Équations Différentielles et Intégration}
+\subtitle{Analyse Comparative et Validation Expérimentale}
+\author{Master 2 - Génie Informatique}
+\institute{Analyse Numérique et Calcul Scientifique}
+\date{\today}
+
+% ============================================================================
+\begin{document}
+% ============================================================================
+
+% Page de titre
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Table des matières
+\begin{frame}{Plan de la présentation}
+    \tableofcontents
+\end{frame}
+
+% ============================================================================
+\section{Introduction}
+% ============================================================================
+
+\begin{frame}{Contexte et Objectifs}
+    \begin{block}{Problématique}
+        L'analyse numérique fournit des outils essentiels pour résoudre des problèmes mathématiques complexes qui n'admettent pas de solution analytique.
+    \end{block}
+
+    \vspace{0.5cm}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Équations Différentielles}
+            \begin{itemize}
+                \item Méthode d'Euler
+                \item Méthode de Heun
+                \item Runge-Kutta d'ordre 4
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Intégration Numérique}
+            \begin{itemize}
+                \item Quadratures de Gauss
+                \item Méthode de Simpson
+                \item Splines Quadratiques
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.5cm}
+
+    \begin{alertblock}{Objectif}
+        Analyser, implémenter et comparer rigoureusement ces méthodes sur des problèmes tests.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Méthodologie}
+    \begin{enumerate}
+        \item \textbf{Analyse théorique} : Fondements mathématiques et propriétés
+        \item \textbf{Implémentation} : Code Python optimisé et structuré
+        \item \textbf{Validation} : Comparaison avec solutions exactes
+        \item \textbf{Analyse comparative} :
+        \begin{itemize}
+            \item Convergence
+            \item Précision
+            \item Efficacité computationnelle
+            \item Stabilité numérique
+        \end{itemize}
+        \item \textbf{Synthèse} : Recommandations d'utilisation
+    \end{enumerate}
+\end{frame}
+
+% ============================================================================
+\section{Fondements Théoriques}
+% ============================================================================
+
+\subsection{Équations Différentielles Ordinaires}
+
+\begin{frame}{Problème de Cauchy}
+    \begin{block}{Formulation générale}
+        Soit le problème à valeur initiale :
+        \begin{equation}
+            \begin{cases}
+                y'(x) = f(x, y(x)), & x \in [x_0, x_f] \\
+                y(x_0) = y_0
+            \end{cases}
+        \end{equation}
+        où $f : \R^2 \to \R$ est une fonction continue satisfaisant les conditions de Lipschitz.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Théorème de Cauchy-Lipschitz}
+        Si $f$ est continue et lipschitzienne en $y$, alors le problème admet une unique solution $y \in \mathcal{C}^1([x_0, x_f])$.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Méthodes à Un Pas}
+    \begin{definition}
+        Une méthode à un pas pour résoudre $y' = f(x,y)$ s'écrit :
+        \begin{equation}
+            y_{n+1} = y_n + h \, \Phi(x_n, y_n, h)
+        \end{equation}
+        où $\Phi$ est la \textbf{fonction d'incrément}.
+    \end{definition}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Propriétés essentielles}
+        \begin{itemize}
+            \item \textbf{Consistance} : $\Phi(x, y, 0) = f(x, y)$
+            \item \textbf{Ordre} : Une méthode est d'ordre $p$ si l'erreur locale de troncature est $\mathcal{O}(h^{p+1})$
+            \item \textbf{Stabilité} : Contrôle de la propagation des erreurs
+            \item \textbf{Convergence} : $\max_n |y(x_n) - y_n| \to 0$ quand $h \to 0$
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\subsection{Intégration Numérique}
+
+\begin{frame}{Quadrature Numérique}
+    \begin{block}{Problème général}
+        Approximer l'intégrale :
+        \begin{equation}
+            I(f) = \int_a^b w(x) f(x) \, dx
+        \end{equation}
+        par une somme pondérée :
+        \begin{equation}
+            Q_n(f) = \sum_{i=1}^n w_i f(x_i)
+        \end{equation}
+        où $w(x)$ est une fonction poids, $\{x_i\}$ sont les nœuds et $\{w_i\}$ les poids.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{definition}[Degré d'exactitude]
+        Une méthode a un degré d'exactitude $d$ si elle intègre exactement tous les polynômes de degré $\leq d$.
+    \end{definition}
+\end{frame}
+
+\begin{frame}{Quadratures de Gauss}
+    \begin{theorem}[Formules de Gauss]
+        Pour tout $n \in \N^*$, il existe un unique ensemble de nœuds $\{x_i\}_{i=1}^n$ et de poids $\{w_i\}_{i=1}^n$ tel que :
+        \begin{equation}
+            \int_a^b w(x) f(x) \, dx = \sum_{i=1}^n w_i f(x_i) + E_n(f)
+        \end{equation}
+        soit exacte pour tous les polynômes de degré $\leq 2n-1$.
+    \end{theorem}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Propriété clé}
+        Les nœuds $\{x_i\}$ sont les racines des polynômes orthogonaux associés à la fonction poids $w(x)$.
+    \end{block}
+\end{frame}
+
+% ============================================================================
+\section{Méthodes pour Équations Différentielles}
+% ============================================================================
+
+\subsection{Méthode d'Euler}
+
+\begin{frame}{Méthode d'Euler Explicite}
+    \begin{block}{Formulation}
+        \begin{equation}
+            y_{n+1} = y_n + h \, f(x_n, y_n)
+        \end{equation}
+    \end{block}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Principe}
+            \begin{itemize}
+                \item Approximation de la dérivée par différence finie
+                \item $y'(x_n) \approx \frac{y_{n+1} - y_n}{h}$
+                \item Tangente locale
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Propriétés}
+            \begin{itemize}
+                \item \textcolor{ForestGreen}{Simple et rapide}
+                \item \textcolor{red}{Ordre 1 : $\mathcal{O}(h)$}
+                \item \textcolor{red}{Stabilité limitée}
+                \item Erreur globale : $\mathcal{O}(h)$
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{alertblock}{Analyse de l'erreur}
+        Développement de Taylor :
+        \begin{equation}
+            y(x_{n+1}) = y(x_n) + h y'(x_n) + \frac{h^2}{2} y''(\xi_n)
+        \end{equation}
+        Erreur locale de troncature : $\tau_n = \frac{h^2}{2} y''(\xi_n) = \mathcal{O}(h^2)$
+    \end{alertblock}
+\end{frame}
+
+\subsection{Méthode de Heun}
+
+\begin{frame}{Méthode de Heun (RK2)}
+    \begin{block}{Formulation}
+        \begin{align}
+            k_1 &= f(x_n, y_n) \\
+            k_2 &= f\left(x_n + \frac{h}{2}, y_n + \frac{h}{2} k_1\right) \\
+            y_{n+1} &= y_n + h \, k_2
+        \end{align}
+    \end{block}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Principe}
+            \begin{itemize}
+                \item Méthode prédicteur-correcteur
+                \item Évaluation au point milieu
+                \item Runge-Kutta d'ordre 2
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Propriétés}
+            \begin{itemize}
+                \item \textcolor{ForestGreen}{Ordre 2 : $\mathcal{O}(h^2)$}
+                \item \textcolor{ForestGreen}{Meilleure stabilité}
+                \item 2 évaluations de $f$
+                \item Bon compromis
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Erreur}
+        Erreur locale : $\mathcal{O}(h^3)$ \quad $\Rightarrow$ \quad Erreur globale : $\mathcal{O}(h^2)$
+    \end{block}
+\end{frame}
+
+\subsection{Runge-Kutta d'ordre 4}
+
+\begin{frame}{Méthode de Runge-Kutta d'ordre 4}
+    \begin{block}{Formulation classique (RK4)}
+        \begin{align}
+            k_1 &= f(x_n, y_n) \\
+            k_2 &= f\left(x_n + \frac{h}{2}, y_n + \frac{h}{2} k_1\right) \\
+            k_3 &= f\left(x_n + \frac{h}{2}, y_n + \frac{h}{2} k_2\right) \\
+            k_4 &= f(x_n + h, y_n + h k_3) \\
+            y_{n+1} &= y_n + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)
+        \end{align}
+    \end{block}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Avantages}
+            \begin{itemize}
+                \item \textcolor{ForestGreen}{Ordre 4 : $\mathcal{O}(h^4)$}
+                \item \textcolor{ForestGreen}{Très grande précision}
+                \item \textcolor{ForestGreen}{Excellente stabilité}
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Coût}
+            \begin{itemize}
+                \item 4 évaluations de $f$
+                \item Plus coûteux par pas
+                \item Mais permet $h$ plus grand
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Méthodes d'Intégration Numérique}
+% ============================================================================
+
+\subsection{Quadratures de Gauss}
+
+\begin{frame}{Gauss-Legendre}
+    \begin{block}{Formule}
+        \begin{equation}
+            \int_{-1}^1 f(x) \, dx \approx \sum_{i=1}^n w_i f(x_i)
+        \end{equation}
+        où $x_i$ sont les racines du polynôme de Legendre $P_n(x)$.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Propriétés}
+            \begin{itemize}
+                \item Degré d'exactitude : $2n-1$
+                \item Convergence spectrale
+                \item Optimal pour fonctions régulières
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Changement de variable}
+            \begin{equation*}
+                \int_a^b f(x) dx = \frac{b-a}{2} \int_{-1}^1 f\left(\frac{b-a}{2}t + \frac{a+b}{2}\right) dt
+            \end{equation*}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Erreur}
+        Pour $f \in \mathcal{C}^{2n}([a,b])$ :
+        \begin{equation}
+            E_n(f) = \frac{f^{(2n)}(\xi)}{(2n)!} \frac{(b-a)^{2n+1}}{2^{2n}} \left(\frac{n!}{(2n)!}\right)^2
+        \end{equation}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Gauss-Laguerre}
+    \begin{block}{Formule}
+        \begin{equation}
+            \int_0^{\infty} e^{-x} f(x) \, dx \approx \sum_{i=1}^n w_i f(x_i)
+        \end{equation}
+        où $x_i$ sont les racines du polynôme de Laguerre $L_n(x)$.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{exampleblock}{Applications}
+        \begin{itemize}
+            \item Intégrales sur $[0, \infty)$ avec décroissance exponentielle
+            \item Transformées de Laplace
+            \item Physique quantique, statistiques
+        \end{itemize}
+    \end{exampleblock}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Convergence}
+        Convergence spectrale pour fonctions analytiques décroissant exponentiellement.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Gauss-Chebyshev}
+    \begin{block}{Formule}
+        \begin{equation}
+            \int_{-1}^1 \frac{f(x)}{\sqrt{1-x^2}} \, dx \approx \sum_{i=1}^n w_i f(x_i)
+        \end{equation}
+        avec $x_i = \cos\left(\frac{2i-1}{2n}\pi\right)$ et $w_i = \frac{\pi}{n}$.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Avantages}
+            \begin{itemize}
+                \item Poids constants
+                \item Calcul explicite des nœuds
+                \item Très efficace
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Applications}
+            \begin{itemize}
+                \item Intégrales avec singularités
+                \item Approximation de fonctions
+                \item Méthodes spectrales
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{alertblock}{Attention}
+        La fonction poids $w(x) = \frac{1}{\sqrt{1-x^2}}$ doit être prise en compte.
+    \end{alertblock}
+\end{frame}
+
+\subsection{Méthodes Classiques}
+
+\begin{frame}{Méthode de Simpson}
+    \begin{block}{Formule composite}
+        \begin{equation}
+            \int_a^b f(x) \, dx \approx \frac{h}{3}\left[f(x_0) + 4\sum_{i=1,3,5,...}^{n-1} f(x_i) + 2\sum_{i=2,4,6,...}^{n-2} f(x_i) + f(x_n)\right]
+        \end{equation}
+        où $h = \frac{b-a}{n}$ et $n$ est pair.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Principe}
+            \begin{itemize}
+                \item Interpolation parabolique
+                \item Utilise 3 points
+                \item Ordre 4
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Erreur}
+            \begin{equation*}
+                E = -\frac{(b-a)^5}{180n^4} f^{(4)}(\xi)
+            \end{equation*}
+            $\Rightarrow$ Convergence en $\mathcal{O}(h^4)$
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{exampleblock}{Avantages}
+        Robuste, simple, bien adapté aux fonctions régulières sur intervalles bornés.
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Splines Quadratiques}
+    \begin{block}{Principe}
+        Approcher $f$ par une fonction spline quadratique $S(x)$ définie par morceaux :
+        \begin{equation}
+            S_i(x) = a_i(x - x_i)^2 + b_i(x - x_i) + c_i, \quad x \in [x_i, x_{i+1}]
+        \end{equation}
+        puis intégrer exactement $S(x)$.
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Construction}
+            \begin{itemize}
+                \item Interpolation aux nœuds
+                \item Continuité en $\mathcal{C}^1$
+                \item Système linéaire
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Propriétés}
+            \begin{itemize}
+                \item Ordre 3 : $\mathcal{O}(h^3)$
+                \item Flexibilité
+                \item Robuste aux oscillations
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Intégrale}
+        \begin{equation}
+            \int_{x_i}^{x_{i+1}} S_i(x) \, dx = \frac{a_i h_i^3}{3} + \frac{b_i h_i^2}{2} + c_i h_i
+        \end{equation}
+    \end{block}
+\end{frame}
+
+% ============================================================================
+\section{Résultats Expérimentaux}
+% ============================================================================
+
+\subsection{Équations Différentielles}
+
+\begin{frame}{Problème Test}
+    \begin{block}{EDO considérée}
+        \begin{equation}
+            \begin{cases}
+                y'(x) = \pi \cos(\pi x) \, y(x), & x \in [0, 6] \\
+                y(0) = 1
+            \end{cases}
+        \end{equation}
+    \end{block}
+
+    \begin{block}{Solution exacte}
+        \begin{equation}
+            y(x) = \exp(\sin(\pi x))
+        \end{equation}
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{exampleblock}{Caractéristiques}
+        \begin{itemize}
+            \item Fonction oscillante avec période 2
+            \item Permet une validation rigoureuse
+            \item Test classique pour méthodes numériques
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Comparaison : $h = 0.5$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/edo_comparaison_h0.500.pdf}
+        \caption{Comparaison des méthodes pour $h = 0.5$ (12 pas)}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{itemize}
+        \item \textcolor{red}{Euler} : Erreur visible, accumulation rapide
+        \item \textcolor{ForestGreen}{Heun} : Bonne approximation
+        \item \textcolor{purple}{RK4} : Quasi-superposition avec solution exacte
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Comparaison : $h = 0.3$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/edo_comparaison_h0.300.pdf}
+        \caption{Comparaison des méthodes pour $h = 0.3$ (20 pas)}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{itemize}
+        \item Amélioration notable pour Euler
+        \item Heun et RK4 : erreur négligeable
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Comparaison : $h = 0.15$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/edo_comparaison_h0.150.pdf}
+        \caption{Comparaison des méthodes pour $h = 0.15$ (40 pas)}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{itemize}
+        \item Euler devient acceptable
+        \item RK4 : précision machine
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Comparaison : $h = 0.06$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/edo_comparaison_h0.060.pdf}
+        \caption{Comparaison des méthodes pour $h = 0.06$ (100 pas)}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{itemize}
+        \item Toutes les méthodes convergent
+        \item Différence principale : coût computationnel
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Étude de Convergence}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/edo_convergence.pdf}
+        \caption{Analyse de convergence et efficacité computationnelle}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Observations}
+        \begin{itemize}
+            \item Pentes confirment les ordres théoriques : 1, 2 et 4
+            \item RK4 : meilleure précision pour un temps donné
+            \item Heun : excellent compromis précision/coût
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Tableau Comparatif - EDO}
+    \begin{table}
+        \centering
+        \caption{Ordres de convergence observés}
+        \small
+        \begin{tabular}{lccc}
+            \toprule
+            \textbf{Méthode} & \textbf{Ordre théorique} & \textbf{Ordre observé} & \textbf{Coût/pas} \\
+            \midrule
+            Euler & 1 & $\approx 1.0$ & 1 éval. \\
+            Heun & 2 & $\approx 2.0$ & 2 éval. \\
+            RK4 & 4 & $\approx 4.0$ & 4 éval. \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{0.5cm}
+
+    \begin{block}{Recommandations}
+        \begin{itemize}
+            \item \textbf{Euler} : Problèmes simples, prototypage rapide
+            \item \textbf{Heun} : Usage général, bon compromis
+            \item \textbf{RK4} : Haute précision requise, standard industriel
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\subsection{Intégration Numérique}
+
+\begin{frame}{Gauss-Laguerre : $\int_0^{\infty} e^{-x} x^2 \, dx = 2$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_gauss_laguerre.pdf}
+        \caption{Convergence de Gauss-Laguerre sur intégrale infinie}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Analyse}
+        \begin{itemize}
+            \item Convergence spectrale (exponentielle)
+            \item $n = 10$ : erreur $< 10^{-14}$ (précision machine)
+            \item Idéal pour intégrales à décroissance exponentielle
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Gauss-Legendre : $\int_{-1}^1 \cos(x) \, dx = 2\sin(1)$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_gauss_legendre.pdf}
+        \caption{Convergence de Gauss-Legendre sur intégrale bornée}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Analyse}
+        \begin{itemize}
+            \item Convergence spectrale très rapide
+            \item Universalité pour fonctions régulières
+            \item Référence en quadrature numérique
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Gauss-Chebyshev : $\int_{-1}^1 \frac{x^4}{\sqrt{1-x^2}} \, dx = \frac{3\pi}{8}$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_gauss_chebyshev.pdf}
+        \caption{Convergence de Gauss-Chebyshev avec fonction poids}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Analyse}
+        \begin{itemize}
+            \item Poids constants : simplicité d'implémentation
+            \item Optimal pour singularités aux bornes
+            \item Convergence spectrale garantie
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Simpson : $\int_0^{\pi} \sin(x) \, dx = 2$}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_simpson.pdf}
+        \caption{Convergence de la méthode de Simpson}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Analyse}
+        \begin{itemize}
+            \item Convergence algébrique : $\mathcal{O}(n^{-4})$
+            \item Plus lente que Gauss mais très robuste
+            \item Excellent choix pour applications générales
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Spline Quadratique : Fonction de Runge}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_spline.pdf}
+        \caption{Spline quadratique sur $\int_{-1}^1 \frac{1}{1+25x^2} \, dx = \frac{\pi}{10}$}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{block}{Analyse}
+        \begin{itemize}
+            \item Convergence $\mathcal{O}(n^{-3})$
+            \item Robustesse face aux oscillations (phénomène de Runge)
+            \item Alternative intéressante aux polynômes d'interpolation
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Comparaison Globale}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/int_comparaison_globale.pdf}
+        \caption{Comparaison sur $\int_{-1}^1 \cos(x) \, dx$}
+    \end{figure}
+
+    \vspace{-0.2cm}
+
+    \begin{itemize}
+        \item \textbf{Gauss-Legendre/Chebyshev} : convergence la plus rapide
+        \item \textbf{Simpson} : robuste, convergence algébrique régulière
+        \item \textbf{Spline} : bon compromis, stabilité numérique
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Tableau Comparatif - Intégration}
+    \begin{table}
+        \centering
+        \caption{Propriétés des méthodes d'intégration}
+        \scriptsize
+        \begin{tabular}{lcccc}
+            \toprule
+            \textbf{Méthode} & \textbf{Convergence} & \textbf{Degré exact.} & \textbf{Domaine} & \textbf{Robustesse} \\
+            \midrule
+            Gauss-Laguerre & Spectrale & $2n-1$ & $[0, \infty)$ & Excellente \\
+            Gauss-Legendre & Spectrale & $2n-1$ & $[a, b]$ & Excellente \\
+            Gauss-Chebyshev & Spectrale & $2n-1$ & $[-1, 1]$ & Excellente \\
+            Simpson & $\mathcal{O}(n^{-4})$ & 3 & $[a, b]$ & Très bonne \\
+            Spline Quad. & $\mathcal{O}(n^{-3})$ & 2 & $[a, b]$ & Bonne \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Recommandations}
+        \begin{itemize}
+            \item \textbf{Fonctions régulières} : Gauss-Legendre (optimal)
+            \item \textbf{Intégrales infinies} : Gauss-Laguerre
+            \item \textbf{Singularités} : Gauss-Chebyshev
+            \item \textbf{Usage général} : Simpson (fiabilité)
+            \item \textbf{Fonctions oscillantes} : Splines (stabilité)
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% ============================================================================
+\section{Analyse Comparative}
+% ============================================================================
+
+\begin{frame}{Synthèse : Équations Différentielles}
+    \begin{table}
+        \centering
+        \caption{Comparaison qualitative des méthodes EDO}
+        \small
+        \begin{tabular}{lccc}
+            \toprule
+            \textbf{Critère} & \textbf{Euler} & \textbf{Heun} & \textbf{RK4} \\
+            \midrule
+            Précision & ★ & ★★★ & ★★★★★ \\
+            Vitesse & ★★★★★ & ★★★★ & ★★★ \\
+            Stabilité & ★★ & ★★★★ & ★★★★★ \\
+            Simplicité & ★★★★★ & ★★★★ & ★★★ \\
+            Usage général & ★★ & ★★★★★ & ★★★★ \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{0.3cm}
+
+    \begin{alertblock}{Points clés}
+        \begin{itemize}
+            \item \textbf{Choix du pas $h$} : critique pour Euler, moins pour RK4
+            \item \textbf{Stabilité} : RK4 permet pas plus grands
+            \item \textbf{Efficacité} : Heun souvent optimal (ordre 2, coût modéré)
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Synthèse : Intégration Numérique}
+    \begin{table}
+        \centering
+        \caption{Comparaison qualitative des méthodes d'intégration}
+        \scriptsize
+        \begin{tabular}{lccccc}
+            \toprule
+            \textbf{Critère} & \textbf{G-Lag.} & \textbf{G-Leg.} & \textbf{G-Cheb.} & \textbf{Simpson} & \textbf{Spline} \\
+            \midrule
+            Précision & ★★★★★ & ★★★★★ & ★★★★★ & ★★★★ & ★★★ \\
+            Vitesse & ★★★ & ★★★ & ★★★★★ & ★★★★ & ★★★ \\
+            Robustesse & ★★★★ & ★★★★★ & ★★★★ & ★★★★★ & ★★★★ \\
+            Simplicité & ★★★ & ★★★ & ★★★★★ & ★★★★★ & ★★★ \\
+            Polyvalence & ★★ & ★★★★★ & ★★★ & ★★★★ & ★★★★ \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Choix stratégiques}
+        \begin{itemize}
+            \item \textbf{Précision maximale} : Quadratures de Gauss
+            \item \textbf{Fiabilité} : Simpson (convergence garantie)
+            \item \textbf{Problèmes spécifiques} : Adapter la fonction poids
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Considérations Pratiques}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Équations Différentielles}
+            \begin{itemize}
+                \item Contrôle adaptatif du pas
+                \item Détection de rigidité
+                \item Méthodes implicites (stabilité)
+                \item Systèmes d'EDO
+                \item Conservation d'énergie
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Intégration Numérique}
+            \begin{itemize}
+                \item Détection de singularités
+                \item Intégrales multiples
+                \item Méthodes adaptatives
+                \item Régularisation
+                \item Parallélisation
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.5cm}
+
+    \begin{alertblock}{Limites numériques}
+        \begin{itemize}
+            \item Précision machine ($\epsilon \approx 10^{-16}$ en double précision)
+            \item Conditionnement des problèmes
+            \item Coût computationnel vs précision
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+% ============================================================================
+\section{Conclusion}
+% ============================================================================
+
+\begin{frame}{Conclusions Principales}
+    \begin{block}{Équations Différentielles}
+        \begin{itemize}
+            \item \textbf{Runge-Kutta 4} : Standard industriel, excellent rapport précision/stabilité
+            \item \textbf{Heun} : Choix optimal pour usage général (ordre 2 suffisant souvent)
+            \item \textbf{Euler} : Pédagogique, prototypage rapide uniquement
+        \end{itemize}
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Intégration Numérique}
+        \begin{itemize}
+            \item \textbf{Quadratures de Gauss} : Précision maximale pour fonctions régulières
+            \item \textbf{Simpson} : Robustesse et simplicité, excellent choix par défaut
+            \item \textbf{Splines} : Alternative pour fonctions irrégulières
+        \end{itemize}
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{alertblock}{Principe général}
+        Le choix de la méthode dépend du \textbf{compromis} entre précision, coût computationnel, robustesse et propriétés du problème.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Perspectives et Extensions}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Développements possibles}
+            \begin{itemize}
+                \item Méthodes d'ordre supérieur
+                \item Contrôle adaptatif
+                \item Méthodes implicites
+                \item Parallélisation
+                \item GPU computing
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \textbf{Applications avancées}
+            \begin{itemize}
+                \item EDO raides
+                \item Systèmes chaotiques
+                \item EDP (différences finies)
+                \item Optimisation numérique
+                \item Machine Learning
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \vspace{0.5cm}
+
+    \begin{exampleblock}{Outils modernes}
+        Bibliothèques : \texttt{scipy.integrate}, \texttt{scipy.optimize}, \texttt{JAX}, \texttt{PyTorch} (différentiation automatique)
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Validation et Reproductibilité}
+    \begin{block}{Implémentation}
+        \begin{itemize}
+            \item Code Python structuré en packages modulaires
+            \item Tests unitaires sur problèmes avec solutions exactes
+            \item Documentation complète
+            \item Figures générées automatiquement
+        \end{itemize}
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{block}{Validation}
+        \begin{itemize}
+            \item Comparaison systématique avec solutions analytiques
+            \item Vérification des ordres de convergence théoriques
+            \item Analyse de stabilité numérique
+            \item Études de performance computationnelle
+        \end{itemize}
+    \end{block}
+
+    \vspace{0.3cm}
+
+    \begin{exampleblock}{Reproductibilité}
+        Tous les résultats sont reproductibles via le script \texttt{analyse\_complete.py}.
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Références Bibliographiques}
+    \begin{thebibliography}{99}
+        \bibitem{quarteroni} A. Quarteroni, R. Sacco, F. Saleri. \textit{Numerical Mathematics}. Springer, 2007.
+
+        \bibitem{burden} R.L. Burden, J.D. Faires. \textit{Numerical Analysis}. Brooks/Cole, 2010.
+
+        \bibitem{hairer} E. Hairer, S.P. Nørsett, G. Wanner. \textit{Solving Ordinary Differential Equations I: Nonstiff Problems}. Springer, 1993.
+
+        \bibitem{davis} P.J. Davis, P. Rabinowitz. \textit{Methods of Numerical Integration}. Academic Press, 1984.
+
+        \bibitem{trefethen} L.N. Trefethen. \textit{Approximation Theory and Approximation Practice}. SIAM, 2013.
+    \end{thebibliography}
+\end{frame}
+
+\begin{frame}[standout]
+    \Huge{\textbf{Merci de votre attention}}
+
+    \vspace{1cm}
+
+    \Large{Questions ?}
+\end{frame}
+
+% ============================================================================
+\end{document}
+% ============================================================================
+
