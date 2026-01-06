@@ -248,6 +248,7 @@
     \end{alertblock}
 \end{frame}
 
+
 \subsection{Méthode de Heun}
 
 \begin{frame}{Méthode de Heun (RK2)}
@@ -287,6 +288,7 @@
     \end{block}
 \end{frame}
 
+
 \subsection{Runge-Kutta d'ordre 4}
 
 \begin{frame}{Méthode de Runge-Kutta d'ordre 4}
@@ -321,6 +323,7 @@
     \end{columns}
 \end{frame}
 
+
 % ============================================================================
 \section{Méthodes d'Intégration Numérique}
 % ============================================================================
@@ -335,7 +338,7 @@
         où $x_i$ sont les racines du polynôme de Legendre $P_n(x)$.
     \end{block}
 
-    \vspace{0.3cm}
+    \vspace{0.15cm}
 
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
@@ -349,15 +352,12 @@
 
         \begin{column}{0.48\textwidth}
             \textbf{Changement de variable}
-
-            \vspace{0.25cm}
+            \vspace{-0.05cm}
             {\fontsize{8}{9}\selectfont
             $$\int_a^b\! f(x) dx = \tfrac{b-a}{2} \int_{-1}^1\! f\!\left(\tfrac{b-a}{2}t + \tfrac{a+b}{2}\right) dt$$
             }
-            \vspace{0.2cm}
         \end{column}
     \end{columns}
-
     \vspace{0.1cm}
 
     \begin{block}{Erreur}
@@ -367,6 +367,7 @@
         \end{equation}
     \end{block}
 \end{frame}
+
 
 \begin{frame}{Gauss-Laguerre}
     \begin{block}{Formule}
@@ -392,6 +393,7 @@
         Convergence spectrale pour fonctions analytiques décroissant exponentiellement.
     \end{block}
 \end{frame}
+
 
 \begin{frame}{Gauss-Chebyshev}
     \begin{block}{Formule}
@@ -430,6 +432,7 @@
     \end{alertblock}
 \end{frame}
 
+
 \subsection{Méthodes Classiques}
 
 \begin{frame}{Méthode de Simpson}
@@ -467,6 +470,7 @@
         Robuste, simple, bien adapté aux fonctions régulières sur intervalles bornés.
     \end{exampleblock}
 \end{frame}
+
 
 \begin{frame}{Splines Quadratiques}
     \begin{block}{Principe}
@@ -507,6 +511,7 @@
         \end{equation}
     \end{block}
 \end{frame}
+
 
 % ============================================================================
 \section{Résultats Expérimentaux}
