@@ -151,6 +151,35 @@ $$
 \int_a^b f(x) \, dx \approx \int_a^b S(x) \, dx = \sum_{i=0}^{m-2} \left( \frac{a_i h_i^3}{3} + \frac{b_i h_i^2}{2} + c_i h_i \right)
 $$
 
-où $h_i = x_{i+1} - x_i$.
+## Formules des Coefficients de la Spline Quadratique
+
+Pour chaque sous-intervalle $[x_i, x_{i+1}]$, les coefficients du polynôme quadratique
+
+$$
+S_i(x) = a_i (x - x_i)^2 + b_i (x - x_i) + c_i
+$$
+
+sont donnés par les relations suivantes :
+
+$$
+\boxed{
+\begin{aligned}
+c_i &= y_i \\[0.5em]
+b_i &= 2\,a_{i-1}\,h_{i-1} + b_{i-1} \\[0.5em]
+a_i &= \frac{y_{i+1} - y_i - b_i\,h_i}{h_i^2}
+\end{aligned}
+}
+$$
+
+**où :**
+
+- $h_i = x_{i+1} - x_i$ est la longueur du sous-intervalle,
+- $y_i = f(x_i)$ est la valeur de la fonction au point $x_i$.
+
+**Ces relations assurent :**
+
+- l'interpolation des points,
+- la continuité de la fonction,
+- la continuité de la dérivée première.
 
 Cette méthode est très précise car l’intégration de la spline est exacte (pas d’erreur de discrétisation supplémentaire).
