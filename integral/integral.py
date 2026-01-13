@@ -3,6 +3,7 @@ from scipy.special import roots_laguerre
 from numpy.polynomial.legendre import leggauss
 import time
 import matplotlib.pyplot as plt
+from sympy.integrals.quadrature import gauss_legendre
 
 
 # ====================== Méthodes de quadrature ======================
@@ -28,7 +29,7 @@ def gauss_chebyshev_integral(f, n):
     return np.sum(w * f(x))
 
 
-def simpson_integral(f, a, b, n):
+def simpson_integral(f, n, a, b):
     """Règle de Simpson composite, n pair"""
     if n % 2 != 0:
         raise ValueError("n doit être pair")
@@ -75,29 +76,42 @@ def integrale_spline_quadratique(f, a, b, n_points=20):
 
 
 # ====================== Fonction de présentation ======================
+familles_methodes = {"lag":"Gauss-Laguerre", "leg":"Gauss-Legendre", "cheb":"Gauss-Chebyshev", "sim":"Simpson", "spline":"Spline Quadratique"}
 
-def presentation(erreurs, durees, titre):
-    n_values = sorted(erreurs.keys())
-    methodes = ["Gauss-Laguerre", "Gauss-Legendre", "Gauss-Chebyshev", "Simpson", "Spline Quadratique"]
+def presentation(erreurs, durees, titre, methodes=None, n_values=None, use_log=True):
+
+    if methodes is None or n_values is None:
+        raise ValueError("methodes et n_values doivent être fournis")
 
     plt.figure(figsize=(16, 6))
 
     plt.subplot(1, 2, 1)
-    for i, methode in enumerate(methodes):
-        errs = [erreurs[n][i] for n in n_values]
-        plt.semilogy(n_values, errs, 'o-', label=methode, linewidth=2, markersize=6)
-    plt.title("Erreur absolue")
-    plt.xlabel("n (ou nombre de points)")
+    for m in methodes:
+        x = np.array(n_values)
+        y = np.array(erreurs[m])
+        mask = ~np.isnan(y)
+        if use_log:
+            plt.semilogy(x[mask], y[mask], 'o-', label=familles_methodes[m], linewidth=2, markersize=6)
+        else:
+            plt.plot(x[mask], y[mask], 'o-', label=familles_methodes[m], linewidth=2, markersize=6)
+
+    plt.title("Erreur (log)")
+    plt.xlabel("Nombre de points (n)")
+    plt.xticks(n_values)
     plt.ylabel("Erreur absolue (log)")
     plt.legend(fontsize=10)
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
     plt.subplot(1, 2, 2)
-    for i, methode in enumerate(methodes):
-        tps = [durees[n][i] for n in n_values]
-        plt.plot(n_values, tps, 'o-', label=methode, linewidth=2, markersize=6)
+    for m in methodes:
+        x = np.array(n_values)
+        y = np.array(durees[m])
+        mask = ~np.isnan(y)
+        plt.plot(x[mask], y[mask], 'o-', label=familles_methodes[m], linewidth=2, markersize=6)
+
     plt.title("Temps d'exécution")
-    plt.xlabel("n (ou nombre de points)")
+    plt.xlabel("Nombre de points (n)")
+    plt.xticks(n_values)
     plt.ylabel("Durée (secondes)")
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.7)
@@ -110,166 +124,170 @@ def presentation(erreurs, durees, titre):
 # ====================== Programme principal ======================
 
 if __name__ == "__main__":
-    n_values = range(2, 22, 2)
+    n_values = list(range(2, 22, 2))
 
     # 1. Gauss-Laguerre
     print("=== 1. Exemple Gauss-Laguerre (∫_0^∞ e^{-x} x² dx = 2) ===")
     f_lag = lambda x: x ** 2
     exact_lag = 2.0
-    erreurs, durees = {}, {}
+
+    methodes = ["lag", "leg", "sim", "spline"]
+    erreurs = {m: [] for m in methodes}
+    durees = {m: [] for m in methodes}
+
     for n in n_values:
-        erreurs[n] = []
-        durees[n] = []
+
+        #Laguerre
         start = time.time()
         approx = gauss_laguerre_integral(f_lag, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_lag))
-        erreurs[n].extend([np.nan] * 4)
-        durees[n].extend([np.nan] * 4)
-    presentation(erreurs, durees, "Gauss-Laguerre - x² sur [0, ∞)")
+        durees['lag'].append(time.time() - start)
+        erreurs['lag'].append(abs(approx - exact_lag))
+
+        #Legendre
+        start = time.time()
+        approx = gauss_legendre_integral(f_lag, n, a=0, b=100)
+        durees['leg'].append(time.time() - start)
+        erreurs['leg'].append(abs(approx - exact_lag))
+
+        #Simpson
+        start = time.time()
+        approx = simpson_integral(f_lag, n, a=0, b=100)
+        durees['sim'].append(time.time() - start)
+        erreurs['sim'].append(abs(approx - exact_lag))
+
+        #Spline
+        start = time.time()
+        approx = integrale_spline_quadratique(f_lag, a=0, b=100, n_points=n)
+        durees['spline'].append(time.time() - start)
+        erreurs['spline'].append(abs(approx - exact_lag))
+
+    presentation(erreurs, durees, "Gauss-Laguerre - x² sur [0, ∞)", methodes=methodes, n_values=n_values)
 
     # 2. Gauss-Legendre
     print("\n=== 2. Exemple Gauss-Legendre (∫_{-1}^1 cos(x) dx) ===")
     f_leg = lambda x: np.cos(x)
     exact_leg = 2 * np.sin(1)
-    erreurs, durees = {}, {}
+
+    methodes = ["leg", "sim", "spline"]
+    erreurs = {m: [] for m in methodes}
+    durees = {m: [] for m in methodes}
+
     for n in n_values:
-        erreurs[n] = [np.nan]
-        durees[n] = [np.nan]
+        #Legendre
         start = time.time()
         approx = gauss_legendre_integral(f_leg, n, -1, 1)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_leg))
-        f_adapt = lambda x: np.cos(x) * np.sqrt(1 - x ** 2)
+        durees['leg'].append(time.time() - start)
+        erreurs['leg'].append(abs(approx - exact_leg))
+
+        #Simpson
         start = time.time()
-        approx = gauss_chebyshev_integral(f_adapt, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_leg))
-        start = time.time()
-        approx = simpson_integral(f_leg, -1, 1, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_leg))
+        approx = simpson_integral(f_leg, n, -1, 1)
+        durees['sim'].append(time.time() - start)
+        erreurs['sim'].append(abs(approx - exact_leg))
+
+        #Spline
         start = time.time()
         approx = integrale_spline_quadratique(f_leg, -1, 1, n_points=n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_leg))
-    presentation(erreurs, durees, "Gauss-Legendre - cos(x) sur [-1,1]")
+        durees['spline'].append(time.time() - start)
+        erreurs['spline'].append(abs(approx - exact_leg))
+
+    presentation(erreurs, durees, "Gauss-Legendre - cos(x) sur [-1,1]", methodes=["leg", "sim", "spline"], n_values=n_values)
 
     # 3. Gauss-Chebyshev
     print("\n=== 3. Exemple Gauss-Chebyshev (∫_{-1}^1 x^4 / √(1-x²) dx = 3π/8) ===")
     f_cheb = lambda x: x ** 4
     exact_cheb = 3 * np.pi / 8
-    erreurs, durees = {}, {}
+
+    methodes = ["cheb", "leg", "sim", "spline"]
+    erreurs = {m: [] for m in methodes}
+    durees = {m: [] for m in methodes}
+
     for n in n_values:
-        erreurs[n] = [np.nan]
-        durees[n] = [np.nan]
-        start = time.time()
-        approx = gauss_legendre_integral(f_cheb, n, -1, 1)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_cheb))
+        #Chebyshev
         start = time.time()
         approx = gauss_chebyshev_integral(f_cheb, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_cheb))
+        durees['cheb'].append(time.time() - start)
+        erreurs['cheb'].append(abs(approx - exact_cheb))
+
+        f_adapt = lambda x: f_cheb(x) * np.sqrt(1 - x ** 2)
+
+        #Legendre
         start = time.time()
-        approx = simpson_integral(lambda x: f_cheb(x) / np.sqrt(1 - x ** 2 + 1e-12), -1, 1, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_cheb))
+        approx = gauss_legendre_integral(f_adapt, n, -1, 1)
+        durees['leg'].append(time.time() - start)
+        erreurs['leg'].append(abs(approx - exact_cheb))
+
+        #Simpson
         start = time.time()
-        approx = integrale_spline_quadratique(lambda x: f_cheb(x) / np.sqrt(1 - x ** 2 + 1e-12), -1, 1, n_points=n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_cheb))
-    presentation(erreurs, durees, "Gauss-Chebyshev - x^4 / √(1-x²)")
+        approx = simpson_integral(f_adapt, n, -1, 1)
+        durees['sim'].append(time.time() - start)
+        erreurs['sim'].append(abs(approx - exact_cheb))
 
-    # 4. NOUVEL EXEMPLE : Combinaison Gauss-Laguerre + Gauss-Chebyshev
-    print("\n=== 4. Combinaison Gauss-Laguerre & Gauss-Chebyshev : ∫_{-1}^1 e^{-x} / √(1-x²) dx ===")
-    f_comb = lambda x: np.exp(-x)
-    # Fonction adaptée pour Chebyshev : le poids 1/√(1-x²) est déjà inclus
-    f_cheb_comb = lambda x: np.exp(-x)
-
-    # On utilise Gauss-Chebyshev comme référence très précise (convergence spectrale)
-    ref_approx = gauss_chebyshev_integral(f_cheb_comb, 100)  # n très grand pour référence
-
-    erreurs, durees = {}, {}
-    for n in n_values:
-        erreurs[n] = [np.nan]  # Laguerre non applicable
-        durees[n] = [np.nan]
-
-        # Legendre
+        #Spline
         start = time.time()
-        approx = gauss_legendre_integral(f_comb, n, -1, 1)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - ref_approx))
+        approx = integrale_spline_quadratique(f_adapt, -1, 1, n_points=n)
+        durees['spline'].append(time.time() - start)
+        erreurs['spline'].append(abs(approx - exact_cheb))
 
-        # Chebyshev (optimal ici)
-        start = time.time()
-        approx = gauss_chebyshev_integral(f_cheb_comb, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - ref_approx))
-
-        # Simpson
-        start = time.time()
-        approx = simpson_integral(lambda x: f_comb(x) / np.sqrt(1 - x ** 2 + 1e-12), -1, 1, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - ref_approx))
-
-        # Spline
-        start = time.time()
-        approx = integrale_spline_quadratique(lambda x: f_comb(x) / np.sqrt(1 - x ** 2 + 1e-12), -1, 1, n_points=n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - ref_approx))
-
-    presentation(erreurs, durees, "Combinaison Laguerre-Chebyshev : ∫ e^{-x} / √(1-x²) dx sur [-1,1]")
+    presentation(erreurs, durees, "Gauss-Chebyshev - x^4 / √(1-x²)", methodes=["leg", "cheb", "sim", "spline"], n_values=n_values)
 
     # 5. Simpson
     print("\n=== 5. Exemple Simpson (∫_0^π sin(x) dx = 2) ===")
     f_sim = lambda x: np.sin(x)
     exact_sim = 2.0
-    erreurs, durees = {}, {}
+
+    methodes = ["leg", "sim", "spline"]
+    erreurs = {m: [] for m in methodes}
+    durees = {m: [] for m in methodes}
+
     for n in n_values:
-        erreurs[n] = [np.nan]
-        durees[n] = [np.nan]
+        #Legendre
         start = time.time()
         approx = gauss_legendre_integral(f_sim, n, 0, np.pi)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_sim))
-        erreurs[n].append(np.nan)
-        durees[n].append(np.nan)
+        durees['leg'].append(time.time() - start)
+        erreurs['leg'].append(abs(approx - exact_sim))
+
+        #Simpson
         start = time.time()
-        approx = simpson_integral(f_sim, 0, np.pi, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_sim))
+        approx = simpson_integral(f_sim, n, a=0, b=np.pi)
+        durees['sim'].append(time.time() - start)
+        erreurs['sim'].append(abs(approx - exact_sim))
+
+        #spline
         start = time.time()
         approx = integrale_spline_quadratique(f_sim, 0, np.pi, n_points=n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_sim))
-    presentation(erreurs, durees, "Simpson - sin(x) sur [0, π]")
+        durees['spline'].append(time.time() - start)
+        erreurs['spline'].append(abs(approx - exact_sim))
+
+    presentation(erreurs, durees, "Simpson - sin(x) sur [0, π]", methodes=["leg", "sim", "spline"], n_values=n_values)
 
     # 6. Exemple favorable à la Spline - Fonction de Runge
     print("\n=== 6. Exemple favorable à la Spline - Fonction de Runge ===")
-    f_runge = lambda x: 1 / (1 + 25 * x ** 2)
+    f_spline = lambda x: 1 / (1 + 25 * x ** 2)
     exact_runge = np.pi / 10
-    erreurs, durees = {}, {}
-    for n in n_values:
-        erreurs[n] = [np.nan]
-        durees[n] = [np.nan]
-        start = time.time()
-        approx = gauss_legendre_integral(f_runge, n, -1, 1)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_runge))
-        f_adapt_runge = lambda x: f_runge(x) * np.sqrt(1 - x ** 2)
-        start = time.time()
-        approx = gauss_chebyshev_integral(f_adapt_runge, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_runge))
-        start = time.time()
-        approx = simpson_integral(f_runge, -1, 1, n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_runge))
-        start = time.time()
-        approx = integrale_spline_quadratique(f_runge, -1, 1, n_points=n)
-        durees[n].append(time.time() - start)
-        erreurs[n].append(abs(approx - exact_runge))
-    presentation(erreurs, durees, "Spline Quadratique - Fonction de Runge 1/(1+25x²) sur [-1,1]")
 
+    methodes = ["leg", "sim", "spline"]
+    erreurs = {m: [] for m in methodes}
+    durees = {m: [] for m in methodes}
+
+    for n in n_values:
+        #Legendre
+        start = time.time()
+        approx = gauss_legendre_integral(f_spline, n, -1, 1)
+        durees['leg'].append(time.time() - start)
+        erreurs['leg'].append(abs(approx - exact_runge))
+
+        #Simpson
+        start = time.time()
+        approx = simpson_integral(f_spline, n, -1, 1)
+        durees['sim'].append(time.time() - start)
+        erreurs['sim'].append(abs(approx - exact_runge))
+
+        #Spline
+        start = time.time()
+        approx = integrale_spline_quadratique(f_spline, -1, 1, n_points=n)
+        durees['spline'].append(time.time() - start)
+        erreurs['spline'].append(abs(approx - exact_runge))
+
+    presentation(erreurs, durees, "Spline Quadratique - Fonction de Runge 1/(1+25x²) sur [-1,1]", methodes=["leg", "sim", "spline"], n_values=n_values, use_log=False)
     print("\nToutes les comparaisons sont terminées !")

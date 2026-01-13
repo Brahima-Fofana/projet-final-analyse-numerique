@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import time
 
 
-def runge_kutta(f, x0, y0, h, N):
-    x = np.zeros(N + 1)
-    y = np.zeros(N + 1)
+def runge_kutta(f, x0, y0, h, nb_max_point):
+    x = np.zeros(nb_max_point + 1)
+    y = np.zeros(nb_max_point + 1)
     x[0] = x0
     y[0] = y0
-    for n in range(N):
+    for n in range(nb_max_point):
         x[n + 1] = x[n] + h
         k1 = h * f(x[n], y[n])
         k2 = h * f(x[n] + h / 2, y[n] + k1 / 2)
@@ -18,29 +18,38 @@ def runge_kutta(f, x0, y0, h, N):
     return x, y
 
 
-def representation(f, x0, y0, h_list, exact=None):
+def representation(f, x0, y0, h_list, exact=None, x_max=6):
     for h in h_list:
-        N = int(6 / h)
+        nb_max_point = int((x_max - x0) / h)
 
+        # Mesure du temps
         start_time = time.perf_counter()
-        x, y_num = runge_kutta(f, x0, y0, h, N)
+        x, y = runge_kutta(f, x0, y0, h, nb_max_point)
         end_time = time.perf_counter()
         duration = end_time - start_time
 
+        #Solution Exacte
         y_exact = exact(x)
-        erreur_max = np.max(np.abs(y_num - y_exact))
-        erreur_l2 = np.sqrt(np.mean((y_num - y_exact) ** 2))
 
-        print(f"Méthode de Runge-Kutta - h = {h}")
+        # Calcul des erreurs
+        erreur_max = np.max(np.abs(y - y_exact))
+        erreur_l2 = np.sqrt(np.mean((y - y_exact) ** 2))
+
+        # Affichage dans la console
+        print(f"Méthode de Runge Kunta - h = {h}")
         print(f"  Temps d'exécution : {duration:.6f} secondes")
         print(f"  Erreur maximale    : {erreur_max:.6e}")
         print(f"  Erreur moyenne          : {erreur_l2:.6e}")
         print("-" * 50)
 
-        plt.figure()
-        plt.plot(x, y_num, 'r-o', label=f'RK4 h={h}')
-        plt.plot(x, y_exact, 'b--', label='Exacte')
-        plt.title(f'Méthode de Runge-Kutta (h = {h})')
+        x_exacte_lisse = np.linspace(x0, x_max, 100)
+        y_exacte_lisse = exact(x_exacte_lisse)
+
+        # Graphe
+        plt.figure(figsize=(11, 6))
+        plt.plot(x, y, 'r-o', label=f'Runge Kunta h={h}')
+        plt.plot(x_exacte_lisse, y_exacte_lisse, 'b--', label='Solution Exacte')
+        plt.title(f'Méthode d\'Runge Kunta (h = {h})')
         plt.xlabel('x')
         plt.ylabel('z(x)')
         plt.legend()
@@ -49,8 +58,8 @@ def representation(f, x0, y0, h_list, exact=None):
 
 
 if __name__ == "__main__":
-    def f(x, y):
-        return np.pi * np.cos(np.pi * x) * y
+    def f(x, z):
+        return np.pi * np.cos(np.pi * x) * z
 
 
     def exact(x):
@@ -59,5 +68,5 @@ if __name__ == "__main__":
 
     x0 = 0
     y0 = 1
-    h_list = [0.5, 0.3]  # Pages 154-155
+    h_list = [0.5, 0.3, 0.15, 0.06]  # Pages 93-95
     representation(f, x0, y0, h_list, exact=exact)
